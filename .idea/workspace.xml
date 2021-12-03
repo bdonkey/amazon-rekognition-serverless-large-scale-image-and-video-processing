@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="823cc574-2409-405d-b914-82d8420d28b6" name="start_tkcimages" comment="" />
+    <list id="b8f353fa-b249-4b04-b010-6a8e61b3d3e1" name="Changes" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FlaskConsoleOptions" custom-start-script="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))">
+    <envs>
+      <env key="FLASK_APP" value="app" />
+    </envs>
+    <option name="myCustomStartScript" value="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))" />
+    <option name="myEnvs">
+      <map>
+        <entry key="FLASK_APP" value="app" />
+      </map>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="ssdev" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$APPLICATION_CONFIG_DIR$/scratches/scratch.json" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/rekognition-pipeline/lambda/s3FolderCreator/lambda_function.py" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/inventory-test.csv" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/rekognition-pipeline/lambda/s3batchprocessor/lambda_function.py" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/rekognition-pipeline/lambda/jobresultprocessor/lambda_function.py" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/s3proc.py" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/syncproc.py" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file:///private/var/folders/v1/c01f2c794zb57qbdwv57kw700000gn/T/response.json" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/rekognition-pipeline/bin/rekognition-pipeline.ts" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/rekognition-pipeline/lambda/helper/python/datastore.py" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/s3batchproc.py" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/itemproc.py" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/rekognition-pipeline/lambda/helper/python/helper.py" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/rekognition-pipeline/lib/rekognition-pipeline-stack.d.ts" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/rekognition-pipeline/lib/rekognition-pipeline-stack.ts" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/rekognition-pipeline/lambda/s3processor/lambda_function.py" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/rekognition-pipeline/lambda/syncprocessor/lambda_function.py" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="ProjectId" id="21TvYhs38F3z4ECyfo1gaKzvSMF" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="configurable.Global.libraries.is.expanded" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
+    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="settings.editor.selected.configurable" value="editor.preferences.tabs" />
+    <property name="ts.external.directory.path" value="$PROJECT_DIR$/rekognition-pipeline/node_modules/typescript/lib" />
+    <property name="vue.rearranger.settings.migration" value="true" />
+  </component>
+  <component name="RecentsManager">
+    <key name="ImportExportFile.TargetDir.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task id="Default" summary="Default task">
+      <branch name="ssdev" repository="$PROJECT_DIR$" />
+      <changelist id="b8f353fa-b249-4b04-b010-6a8e61b3d3e1" name="Changes" comment="" />
+      <created>1637977941353</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1638499849455</updated>
+      <workItem from="1637977944426" duration="32712000" />
+    </task>
+    <task id="LOCAL-00001" summary="project runs&#10;&#10;tested existingcontents and contents folders&#10;now need to tweek for korte images">
+      <created>1638499700362</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1638499700362</updated>
+    </task>
+    <task active="true" id="LOCAL-00002" summary="start_tkcimages">
+      <branch name="ssdev" repository="$PROJECT_DIR$" original="true" />
+      <branch name="start_tkcimages" repository="$PROJECT_DIR$" />
+      <changelist id="823cc574-2409-405d-b914-82d8420d28b6" name="start_tkcimages" comment="" />
+      <created>1638499841050</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1638499849455</updated>
+      <workItem from="1638499849491" duration="2556000" />
+    </task>
+    <option name="localTasksCounter" value="3" />
+    <option name="clearContext" value="false" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+    <option name="exactExcludedFiles">
+      <list>
+        <option value="$PROJECT_DIR$/rekognition-pipeline/bin/rekognition-pipeline.js" />
+        <option value="$PROJECT_DIR$/rekognition-pipeline/bin/rekognition-pipeline.d.ts" />
+        <option value="$PROJECT_DIR$/rekognition-pipeline/lib/rekognition-pipeline-stack.js" />
+        <option value="$PROJECT_DIR$/rekognition-pipeline/lib/rekognition-pipeline-stack.d.ts" />
+      </list>
+    </option>
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="project runs&#10;&#10;tested existingcontents and contents folders&#10;now need to tweek for korte images" />
+    <option name="LAST_COMMIT_MESSAGE" value="project runs&#10;&#10;tested existingcontents and contents folders&#10;now need to tweek for korte images" />
+  </component>
+</project>
