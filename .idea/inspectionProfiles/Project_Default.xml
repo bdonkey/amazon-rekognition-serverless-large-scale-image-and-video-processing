@@ -1,0 +1,13 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="Eslint" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="SqlWithoutWhereInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <scope name="Project Files" level="WARNING" enabled="false">
+        <option name="myDontWarnForTemporaryTable" value="false" />
+      </scope>
+      <scope name="Scratches and Consoles" level="WARNING" enabled="true" />
+      <option name="myDontWarnForTemporaryTable" value="false" />
+    </inspection_tool>
+  </profile>
+</component>

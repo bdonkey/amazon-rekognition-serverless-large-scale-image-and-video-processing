@@ -15,14 +15,20 @@ import * as fs from 'fs';
 export class RekognitionPipelineStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, Object.assign({}, props, {
-      description: "Process images and videos at scale using Amazon Rekognition (uksb-1sd4nlm88)"
+      description: "ssTest Process images and videos at scale using Amazon Rekognition (uksb-1sd4nlm88)"
     }));
 
+    cdk.Tags.of(this).add('What', 'scott Rek pipeline');
+
     // The code that defines your stack goes here
-    
+
+    //region sns
     //**********SNS Topics******************************
     const jobCompletionTopic = new sns.Topic(this, 'JobCompletion');
 
+    // endregion
+
+    //region iamroles
     //**********IAM Roles******************************
     const rekognitionServiceRole = new iam.Role(this, 'RekognitionServiceRole', {
       assumedBy: new iam.ServicePrincipal('rekognition.amazonaws.com')
@@ -35,12 +41,17 @@ export class RekognitionPipelineStack extends cdk.Stack {
       })
     );
 
+    //endregion
 
+//region s3batchoperations
     //**********S3 Batch Operations Role******************************
     const s3BatchOperationsRole = new iam.Role(this, 'S3BatchOperationsRole', {
       assumedBy: new iam.ServicePrincipal('batchoperations.s3.amazonaws.com')
     });
 
+    //endregion
+
+    //region s3buckets
     //**********S3 Bucket******************************
     //S3 bucket for input items and output
     const contentBucket = new s3.Bucket(this, 'ContentBucket', {versioned: false});
@@ -53,6 +64,10 @@ export class RekognitionPipelineStack extends cdk.Stack {
 
     const outputBucket = new s3.Bucket(this, 'OutputBucket', {versioned: false});
 
+    //endregion
+
+    //region dynamodb
+
     //**********DynamoDB Table*************************
     //DynamoDB table with links to output in S3
     const itemsTable = new dynamodb.Table(this, 'ItemsTable', {
@@ -60,6 +75,9 @@ export class RekognitionPipelineStack extends cdk.Stack {
       stream: dynamodb.StreamViewType.NEW_IMAGE
     });
 
+    //endregion
+
+    //region sqs
     //**********SQS Queues*****************************
     //DLQ
     const dlq = new sqs.Queue(this, 'DLQ', {
@@ -85,6 +103,10 @@ export class RekognitionPipelineStack extends cdk.Stack {
       new snsSubscriptions.SqsSubscription(jobResultsQueue)
     );
 
+    //endregion
+
+    //region lambdafunctions
+
     //**********Lambda Functions******************************
 
     // Helper Layer with helper functions
@@ -96,6 +118,7 @@ export class RekognitionPipelineStack extends cdk.Stack {
     });
 
     //------------------------------------------------------------
+    //region s3Processor
 
     // S3 Event processor
     const s3Processor = new lambda.Function(this, 'S3Processor', {
@@ -103,6 +126,7 @@ export class RekognitionPipelineStack extends cdk.Stack {
       code: lambda.Code.asset('lambda/s3processor'),
       handler: 'lambda_function.lambda_handler',
       timeout: cdk.Duration.seconds(30),
+      description:'ssTest',
       environment: {
         SYNC_QUEUE_URL: syncJobsQueue.queueUrl,
         ASYNC_QUEUE_URL: asyncJobsQueue.queueUrl,
@@ -138,7 +162,10 @@ export class RekognitionPipelineStack extends cdk.Stack {
     syncJobsQueue.grantSendMessages(s3Processor)
     asyncJobsQueue.grantSendMessages(s3Processor)
 
+    //endregion
+
     //------------------------------------------------------------
+    //region S3BatchProcessor
 
     // S3 Batch Operations Event processor 
     const s3BatchProcessor = new lambda.Function(this, 'S3BatchProcessor', {
@@ -146,6 +173,7 @@ export class RekognitionPipelineStack extends cdk.Stack {
       code: lambda.Code.asset('lambda/s3batchprocessor'),
       handler: 'lambda_function.lambda_handler',
       timeout: cdk.Duration.seconds(30),
+      description:'ssTest',
       environment: {
         ITEMS_TABLE: itemsTable.tableName,
         OUTPUT_BUCKET: outputBucket.bucketName
@@ -164,12 +192,15 @@ export class RekognitionPipelineStack extends cdk.Stack {
       })
     );
     //------------------------------------------------------------
+    //endregion
 
+//region TaskProcessor
     // Item processor (Router to Sync/Async Pipeline)
     const itemProcessor = new lambda.Function(this, 'TaskProcessor', {
       runtime: lambda.Runtime.PYTHON_3_7,
       code: lambda.Code.asset('lambda/itemprocessor'),
       handler: 'lambda_function.lambda_handler',
+      description:'ssTest',
       timeout: cdk.Duration.seconds(900),
       environment: {
         SYNC_QUEUE_URL: syncJobsQueue.queueUrl,
@@ -188,13 +219,17 @@ export class RekognitionPipelineStack extends cdk.Stack {
     syncJobsQueue.grantSendMessages(itemProcessor)
     asyncJobsQueue.grantSendMessages(itemProcessor)
 
+    //endregion
     //------------------------------------------------------------
+
+    //region SyncProcessor
 
     // Sync Jobs Processor (Process jobs using sync APIs)
     const syncProcessor = new lambda.Function(this, 'SyncProcessor', {
       runtime: lambda.Runtime.PYTHON_3_7,
       code: lambda.Code.asset('lambda/syncprocessor'),
       handler: 'lambda_function.lambda_handler',
+      description:'ssTest',
       reservedConcurrentExecutions: 1,
       timeout: cdk.Duration.seconds(25),
       environment: {
@@ -221,13 +256,18 @@ export class RekognitionPipelineStack extends cdk.Stack {
       })
     );
 
+    //endregion
     //------------------------------------------------------------
+
+
+    //region ASyncProcessor
 
     // Async Job Processor (Start jobs using Async APIs)
     const asyncProcessor = new lambda.Function(this, 'ASyncProcessor', {
       runtime: lambda.Runtime.PYTHON_3_7,
       code: lambda.Code.asset('lambda/asyncprocessor'),
       handler: 'lambda_function.lambda_handler',
+      description:"ssTest",
       reservedConcurrentExecutions: 1,
       timeout: cdk.Duration.seconds(60),
       environment: {
@@ -266,13 +306,18 @@ export class RekognitionPipelineStack extends cdk.Stack {
         resources: ["*"]
       })
     );
+
+    //endregion
     //------------------------------------------------------------
+
+    //region JobResultProcessor
 
     // Async Jobs Results Processor
     const jobResultProcessor = new lambda.Function(this, 'JobResultProcessor', {
       runtime: lambda.Runtime.PYTHON_3_7,
       code: lambda.Code.asset('lambda/jobresultprocessor'),
       handler: 'lambda_function.lambda_handler',
+      description:'ssTest',
       memorySize: 2000,
       reservedConcurrentExecutions: 50,
       timeout: cdk.Duration.seconds(900),
@@ -300,6 +345,9 @@ export class RekognitionPipelineStack extends cdk.Stack {
       })
     );
 
+    //endregion
+
+    //region s3FolderCreator
     //--------------
     // S3 folders creator
 
@@ -325,4 +373,7 @@ export class RekognitionPipelineStack extends cdk.Stack {
     });
 
   }
+//endregion
+
+  //endregion
 }
