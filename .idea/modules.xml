@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/amazon-rekognition-serverless-large-scale-image-and-video-processing.iml" filepath="$PROJECT_DIR$/.idea/amazon-rekognition-serverless-large-scale-image-and-video-processing.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/aws-tkcimages-pipeline.iml" filepath="$PROJECT_DIR$/.idea/aws-tkcimages-pipeline.iml" />
     </modules>
   </component>
 </project>
