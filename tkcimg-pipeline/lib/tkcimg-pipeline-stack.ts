@@ -12,10 +12,10 @@ import s3 = require('@aws-cdk/aws-s3');
 import {LambdaFunction} from "@aws-cdk/aws-events-targets";
 import * as fs from 'fs';
 
-export class RekognitionPipelineStack extends cdk.Stack {
+export class TkcimgPipelineStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, Object.assign({}, props, {
-      description: "ssTest Process images and videos at scale using Amazon Rekognition (uksb-1sd4nlm88)"
+      description: "Process images and videos at scale using Amazon Rekognition (uksb-1sd4nlm88)"
     }));
 
     cdk.Tags.of(this).add('What', 'scott Rek pipeline');

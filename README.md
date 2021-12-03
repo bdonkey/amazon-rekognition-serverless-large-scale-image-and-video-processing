@@ -88,7 +88,7 @@ Architecture below shows overall workflow and few additional components that are
 - [syncproc.py](./src/syncproc.py) Lambda function that takes images from a queue and process them using sync APIs.
 - [asyncproc.py](./src/asyncproc.py) Lambda function that takes video from a queue and start async Amazon Rekognition jobs.
 - [jobresultsproc.py](./src/jobresultsproc.py) Lambda function that process results for a completed Amazon Rekognition async job.
-- [rekognition-pipeline-stack.ts](./rekognition-pipeline/lib/rekognition-pipeline-stack.ts) CDK code to define infrastructure including IAM roles, Lambda functions, SQS queues etc.
+- [tkcimg-pipeline-stack.ts](tkcimg-pipeline/lib/tkcimg-pipeline-stack.ts) CDK code to define infrastructure including IAM roles, Lambda functions, SQS queues etc.
 
 ## Modify source code and update deployed stack
 - You can edit lambda functions in src folder.
