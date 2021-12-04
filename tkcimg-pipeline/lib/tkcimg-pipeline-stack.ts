@@ -53,6 +53,9 @@ export class TkcimgPipelineStack extends cdk.Stack {
 
     //region s3buckets
     //**********S3 Bucket******************************
+    // existing bucket tkcimages
+    const tkcImagesBucket = s3.Bucket.fromBucketName(this,'tkcImagesBucket','tkcimages');
+
     //S3 bucket for input items and output
     const contentBucket = new s3.Bucket(this, 'ContentBucket', {versioned: false});
 
