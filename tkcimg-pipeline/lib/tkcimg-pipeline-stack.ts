@@ -232,7 +232,7 @@ export class TkcimgPipelineStack extends cdk.Stack {
       runtime: lambda.Runtime.PYTHON_3_7,
       code: lambda.Code.asset('lambda/syncprocessor'),
       handler: 'lambda_function.lambda_handler',
-      description:'ssTest',
+      description:'ss-handles tkcpipline sync sqs jobs',
       reservedConcurrentExecutions: 1,
       timeout: cdk.Duration.seconds(25),
       environment: {
@@ -249,6 +249,7 @@ export class TkcimgPipelineStack extends cdk.Stack {
     }));
     //Permissions
     contentBucket.grantReadWrite(syncProcessor)
+    tkcImagesBucket.grantReadWrite(syncProcessor)
     existingContentBucket.grantReadWrite(syncProcessor)
     outputBucket.grantReadWrite(syncProcessor)
     itemsTable.grantReadWriteData(syncProcessor)
