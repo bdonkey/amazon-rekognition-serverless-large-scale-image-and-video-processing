@@ -12,6 +12,8 @@ import s3 = require('@aws-cdk/aws-s3');
 import {LambdaFunction} from "@aws-cdk/aws-events-targets";
 import * as fs from 'fs';
 
+  // import KinesisFirehoseToS3 = require( '@aws-solutions-constructs/aws-kinesisfirehose-s3');
+
 
 export class TkcimgPipelineStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -22,6 +24,12 @@ export class TkcimgPipelineStack extends cdk.Stack {
     cdk.Tags.of(this).add('What', 'scott Rek pipeline');
 
     // The code that defines your stack goes here
+
+    //region ssTestFirhose
+
+    // const { KinesisFirehoseToS3 } from '@aws-solutions-constructs/aws-kinesisfirehose-s3';
+    //  const rekimgfh = new KinesisFirehoseToS3.KinesisFirehoseToS3(KinesisFirehoseToS3, 'test-firehose-s3', {});
+    //endregion
 
     //region sns
     //**********SNS Topics******************************
