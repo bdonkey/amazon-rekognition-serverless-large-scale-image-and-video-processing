@@ -30,6 +30,7 @@
     "@aws-cdk/aws-sqs": "^1.32.0",
     "@aws-cdk/core": "^1.32.0",
     "source-map-support": "^0.5.16",
-    "@aws-solutions-constructs/aws-kinesisfirehose-s3": "^2.0.0"
+    "@aws-solutions-constructs/aws-kinesisfirehose-s3": "^2.0.0",
+    "@aws-solutions-constructs/aws-kinesisstreams-kinesisfirehose-s3": "^2.0.0"
   }
 }

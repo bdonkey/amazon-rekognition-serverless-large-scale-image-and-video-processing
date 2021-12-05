@@ -12,7 +12,13 @@ import s3 = require('@aws-cdk/aws-s3');
 import {LambdaFunction} from "@aws-cdk/aws-events-targets";
 import * as fs from 'fs';
 
-  // import KinesisFirehoseToS3 = require( '@aws-solutions-constructs/aws-kinesisfirehose-s3');
+import * as kinesisfirehose from '@aws-cdk/aws-kinesisfirehose';
+import * as kinesis from '@aws-cdk/aws-kinesis';
+import { DeliveryStream } from '@aws-cdk/aws-kinesisfirehose';
+declare const stream: DeliveryStream;
+
+// import awsKinesisstreamsKinesisfirehoseS3 = require("@aws-solutions-constructs/aws-kinesisstreams-kinesisfirehose-s3")
+// import KinesisFirehoseToS3 = require( '@aws-solutions-constructs/aws-kinesisfirehose-s3');
 
 
 export class TkcimgPipelineStack extends cdk.Stack {
@@ -24,12 +30,6 @@ export class TkcimgPipelineStack extends cdk.Stack {
     cdk.Tags.of(this).add('What', 'scott Rek pipeline');
 
     // The code that defines your stack goes here
-
-    //region ssTestFirhose
-
-    // const { KinesisFirehoseToS3 } from '@aws-solutions-constructs/aws-kinesisfirehose-s3';
-    //  const rekimgfh = new KinesisFirehoseToS3.KinesisFirehoseToS3(KinesisFirehoseToS3, 'test-firehose-s3', {});
-    //endregion
 
     //region sns
     //**********SNS Topics******************************
@@ -83,6 +83,61 @@ export class TkcimgPipelineStack extends cdk.Stack {
     //endregion
 
     //region firehose
+    //https://bit.ly/3pveOZm
+    //https://github.com/aws/aws-cdk/issues/14391
+    // rootStream is a raw kinesis stream in which we build other modules on top of.
+    const topic = new sns.Topic(this, 'Topic');
+    new sns.Subscription(this, 'Subscription', {
+      topic,
+      endpoint: stream.deliveryStreamArn,
+      protocol: sns.SubscriptionProtocol.FIREHOSE,
+      subscriptionRoleArn: "SAMPLE_ARN", //role with permissions to send messages to a firehose delivery stream
+    });
+
+    // approach 2
+    const rootStream = new kinesis.Stream(this, 'RootStream')
+
+    // Output the stream name so we can connect our script to this stream
+    new cdk.CfnOutput(this, 'RootStreamName', {
+      value: rootStream.streamName
+    })
+
+    const firehoseRole = new iam.Role(this, 'firehoseRole', {
+      assumedBy: new iam.ServicePrincipal('firehose.amazonaws.com')
+    });
+
+    rootStream.grantRead(firehoseRole)
+    rootStream.grant(firehoseRole, 'kinesis:DescribeStream')
+    gluebucket.grantWrite(firehoseRole)
+
+    const firehoseStreamToS3 = new kinesisfirehose.CfnDeliveryStream(this, "FirehoseStreamToS3", {
+      deliveryStreamName: "StreamRawToS3",
+      deliveryStreamType: "KinesisStreamAsSource",
+      kinesisStreamSourceConfiguration: {
+        kinesisStreamArn: rootStream.streamArn,
+        roleArn: firehoseRole.roleArn
+      },
+      s3DestinationConfiguration: {
+        bucketArn: gluebucket.bucketArn,
+        bufferingHints: {
+          sizeInMBs: 64,
+          intervalInSeconds: 60
+        },
+        compressionFormat: "GZIP",
+        encryptionConfiguration: {
+          noEncryptionConfig: "NoEncryption"
+        },
+
+        prefix: "raw/",
+        roleArn: firehoseRole.roleArn
+      },
+    })
+
+    // Ensures our role is created before we try to create a Kinesis Firehose
+    firehoseStreamToS3.node.addDependency(firehoseRole)
+
+
+
     //endregion
 
     //region dynamodb
