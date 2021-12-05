@@ -12,6 +12,7 @@ import s3 = require('@aws-cdk/aws-s3');
 import {LambdaFunction} from "@aws-cdk/aws-events-targets";
 import * as fs from 'fs';
 
+
 export class TkcimgPipelineStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, Object.assign({}, props, {
@@ -57,6 +58,9 @@ export class TkcimgPipelineStack extends cdk.Stack {
     // existing bucket tkcimages
     const tkcImagesBucket = s3.Bucket.fromBucketName(this,'tkcImagesBucket','tkcimages');
 
+    // ss bucket for rek output for glue and redshift
+    const gluebucket = new s3.Bucket(this, 'Gluebucket', {versioned: false});
+
     //S3 bucket for input items and output
     const contentBucket = new s3.Bucket(this, 'ContentBucket', {versioned: false});
 
@@ -68,6 +72,9 @@ export class TkcimgPipelineStack extends cdk.Stack {
 
     const outputBucket = new s3.Bucket(this, 'OutputBucket', {versioned: false});
 
+    //endregion
+
+    //region firehose
     //endregion
 
     //region dynamodb
@@ -250,7 +257,7 @@ export class TkcimgPipelineStack extends cdk.Stack {
     syncProcessor.addEventSource(new SqsEventSource(syncJobsQueue, {
       batchSize: 1
     }));
-    syncProcessor.addEventSource(new SnsEventSource(rekCompleteTopic))
+    // syncProcessor.addEventSource(new SnsEventSource(rekCompleteTopic))
     //Permissions
     contentBucket.grantReadWrite(syncProcessor)
     tkcImagesBucket.grantReadWrite(syncProcessor)
