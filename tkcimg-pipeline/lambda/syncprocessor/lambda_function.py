@@ -11,7 +11,10 @@ from pprint import pprint
 
 def callRekognition(bucketName, objectName, apiName,project,imgid):
     rekognition = AwsHelper().getClient('rekognition')
-    
+
+    maxLabels = int(os.environ['MAX_LABELS'])
+    minConfidence = int(os.environ['MIN_CONFIDENCE'])
+
     if(apiName == "labels"):
         response = rekognition.detect_labels(
             Image={
@@ -19,7 +22,10 @@ def callRekognition(bucketName, objectName, apiName,project,imgid):
                     'Bucket': bucketName,
                     'Name': objectName
                 }
-            }
+            },
+            MaxLabels=maxLabels,
+            MinConfidence=minConfidence,
+
         )
     elif (apiName == "text"):
         response = rekognition.detect_text(
