@@ -24,6 +24,7 @@ export class TkcimgPipelineStack extends cdk.Stack {
 
     //region sns
     //**********SNS Topics******************************
+    const rekCompleteTopic = new sns.Topic(this, 'RekCompletion');
     const jobCompletionTopic = new sns.Topic(this, 'JobCompletion');
 
     // endregion
@@ -36,7 +37,7 @@ export class TkcimgPipelineStack extends cdk.Stack {
     rekognitionServiceRole.addToPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        resources: [jobCompletionTopic.topicArn],
+        resources: [jobCompletionTopic.topicArn,rekCompleteTopic.topicArn],
         actions: ["sns:Publish"]
       })
     );
@@ -238,6 +239,8 @@ export class TkcimgPipelineStack extends cdk.Stack {
       environment: {
         OUTPUT_BUCKET: outputBucket.bucketName,
         ITEMS_TABLE: itemsTable.tableName,
+        SNS_ROLE_ARN : rekognitionServiceRole.roleArn,
+        SNS_TOPIC_ARN : rekCompleteTopic.topicArn,
         AWS_DATA_PATH : "models"
       }
     });
@@ -247,6 +250,7 @@ export class TkcimgPipelineStack extends cdk.Stack {
     syncProcessor.addEventSource(new SqsEventSource(syncJobsQueue, {
       batchSize: 1
     }));
+    syncProcessor.addEventSource(new SnsEventSource(rekCompleteTopic))
     //Permissions
     contentBucket.grantReadWrite(syncProcessor)
     tkcImagesBucket.grantReadWrite(syncProcessor)
@@ -254,8 +258,14 @@ export class TkcimgPipelineStack extends cdk.Stack {
     outputBucket.grantReadWrite(syncProcessor)
     itemsTable.grantReadWriteData(syncProcessor)
     syncProcessor.addToRolePolicy(
+        new iam.PolicyStatement({
+          actions: ["rekognition:*"],
+          resources: ["*"]
+        })
+    );
+    syncProcessor.addToRolePolicy(
       new iam.PolicyStatement({
-        actions: ["rekognition:*"],
+        actions: ["sns:*"],
         resources: ["*"]
       })
     );
@@ -271,7 +281,7 @@ export class TkcimgPipelineStack extends cdk.Stack {
       runtime: lambda.Runtime.PYTHON_3_7,
       code: lambda.Code.asset('lambda/asyncprocessor'),
       handler: 'lambda_function.lambda_handler',
-      description:"ssTest",
+      description:"ss-handles tkcpipline async sqs jobs",
       reservedConcurrentExecutions: 1,
       timeout: cdk.Duration.seconds(60),
       environment: {

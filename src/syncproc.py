@@ -5,7 +5,11 @@ import os
 from helper import AwsHelper, S3Helper, DynamoDBHelper
 import datastore
 
-def callRekognition(bucketName, objectName, apiName):
+import re
+from pprint import pprint
+
+
+def callRekognition(bucketName, objectName, apiName,project,imgid):
     rekognition = AwsHelper().getClient('rekognition')
     
     if(apiName == "labels"):
@@ -62,15 +66,37 @@ def callRekognition(bucketName, objectName, apiName):
                 }
             }
         )
+
+
+    # begin ss proc
+    detect_labels= response['Labels']
+    for label in detect_labels:
+        pprint(label)
+
+        snsMessage = json.dumps({'bucket': bucketName,'key':objectName, 'project': project,'imageid':imgid,'labels':label})
+        snsMessage = snsMessage + "\n"
+        print(f"snsMessage = {snsMessage}")
+
+        snsClient = boto3.client('sns')
+        snsTopicArn = os.environ['SNS_TOPIC_ARN']
+        sndRole = os.environ['SNS_ROLE_ARN']
+        snsResponse = snsClient.publish (
+            TargetArn = snsTopicArn,
+            Message = snsMessage,
+            #   MessageStructure = 'json'
+        )
+        print(f"snsResponse = {snsResponse}")
+    # end scott
+
     return response
 
 
-def processImage(itemId, bucketName, objectName, outputBucketName, itemsTableName):
+def processImage(itemId, bucketName, objectName, outputBucketName, itemsTableName,project,imgId):
 
     
     apiName = objectName.split("/")[0]
 
-    response = callRekognition(bucketName, objectName, apiName)
+    response = callRekognition(bucketName, objectName, apiName,project,imgId)
 
     print("Generating output for ItemId: {}".format(itemId))
     print(response)
@@ -99,13 +125,15 @@ def processRequest(request):
     objectName = request['objectName']
     itemId = request['itemId']
     outputBucket = request['outputBucket']
-    itemsTable = request['itemsTable']
     itemsTable = request["itemsTable"]
-    
-    if(itemId and bucketName and objectName):
-        print("ItemId: {}, Object: {}/{}".format(itemId, bucketName, objectName))
+    imgid = request["imgid"]
+    project = request["project"]
 
-        processImage(itemId, bucketName, objectName, outputBucket, itemsTable)
+    if(itemId and bucketName and objectName):
+        print(f"ItemId: {itemId}, object: {bucketName}/{objectName}, project: {project}, imgid: {imgid}")
+        # print("ItemId: {}, Object: {}/{}".format(itemId, bucketName, objectName))
+
+        processImage(itemId, bucketName, objectName, outputBucket, itemsTable,project,imgid)
 
         output = "Item: {}, Object: {}/{} processed.".format(itemId, bucketName, objectName)
         print(output)
@@ -121,11 +149,20 @@ def lambda_handler(event, context):
     message = json.loads(event['Records'][0]['body'])
     print("Message: {}".format(message))
 
+    # scott proc
+    s= json.dumps(message)
+    pattern = re.compile('objectName": ".*\/(\d*)-(\d*)')
+    for (imgId,project) in re.findall(pattern,s):
+        print(f"imgId= {imgId}, project = {project}, bucket = {message['bucketName']}")
+    # end scott proc
+
     request = {}
     request["itemId"] = message['itemId']
     request["bucketName"] = message['bucketName']
     request["objectName"] = message['objectName']
     request["outputBucket"] = os.environ['OUTPUT_BUCKET']
     request["itemsTable"] = os.environ['ITEMS_TABLE']
+    request["imgid"] = imgId
+    request["project"] = project
 
     return processRequest(request)
