@@ -256,6 +256,8 @@ export class TkcimgPipelineStack extends cdk.Stack {
         ITEMS_TABLE: itemsTable.tableName,
         SNS_ROLE_ARN : rekognitionServiceRole.roleArn,
         SNS_TOPIC_ARN : rekCompleteTopic.topicArn,
+        MAX_LABELS: '10',
+        MIN_CONFIDENCE:'90',
         AWS_DATA_PATH : "models"
       }
     });
