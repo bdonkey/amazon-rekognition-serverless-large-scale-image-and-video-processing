@@ -137,7 +137,7 @@ export class TkcimgPipelineStack extends cdk.Stack {
 
     //**********DynamoDB Table*************************
     //DynamoDB table with links to output in S3
-    const itemsTable = new dynamodb.Table(this, 'ItemsTable', {
+    const itemsTable = new dynamodb.Table(this, 'RekPrcsTable', {
       partitionKey: { name: 'itemId', type: dynamodb.AttributeType.STRING },
       stream: dynamodb.StreamViewType.NEW_IMAGE
     });

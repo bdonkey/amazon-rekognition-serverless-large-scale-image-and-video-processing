@@ -4,6 +4,8 @@ import json
 import os
 from helper import AwsHelper, S3Helper, DynamoDBHelper
 import datastore
+import uuid
+import time
 
 import re
 from pprint import pprint
@@ -75,17 +77,34 @@ def callRekognition(bucketName, objectName, apiName, project, imgid):
             MinConfidence=minConfidence,
         )
 
+        responseTxt = rekognition.detect_text(
+            Image={
+                'S3Object': {
+                    'Bucket': bucketName,
+                    'Name': objectName
+                }
+            },
+            Filters={
+                'WordFilter': {
+                    'MinConfidence': 80
+                }
+            }
+        )
+
         kinesisClient=  boto3.client('kinesis')
+        tc = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime())
 
         # begin ss proc
         detect_labels = response['Labels']
         for label in detect_labels:
             pprint(label)
+            iid = str(uuid.uuid4())
 
             snsMessage = json.dumps(
-                {'bucket': bucketName, 'key': objectName, 'project': project, 'imageid': imgid, 'labels': label})
+                {'uuid': iid,'rekcreated': tc,'bucket': bucketName, 'key': objectName, 'project': project, 'imageid': imgid, 'labels': label,'text': {}})
+                # {'bucket': bucketName, 'key': objectName, 'project': project, 'imageid': imgid, 'labels': label})
             snsMessage = snsMessage + "\n"
-            print(f"snsMessage = {snsMessage}")
+            print(f"snsMessage label = {snsMessage}")
 
             snsClient = boto3.client('sns')
             snsTopicArn = os.environ['SNS_TOPIC_ARN']
@@ -95,11 +114,38 @@ def callRekognition(bucketName, objectName, apiName, project, imgid):
                 Message=snsMessage,
                 #   MessageStructure = 'json'
             )
-            print(f"snsResponse = {snsResponse}")
+            print(f"snsResponse Lables = {snsResponse}")
 
-            kinesisClient.put_record(StreamName=os.environ['KIN_STREAM'],
+            kresp =  kinesisClient.put_record(StreamName=os.environ['KIN_STREAM'],
                                      Data=snsMessage,
                                      PartitionKey="partitionkey")
+            print(f"kinesis label response: {kresp}")
+
+        detect_text = responseTxt['TextDetections']
+        for text in detect_text:
+            pprint(text)
+            iid = str(uuid.uuid4())
+
+            snsMessage = json.dumps(
+                {'uuid': iid,'rekcreated': tc,'bucket': bucketName, 'key': objectName, 'project': project, 'imageid': imgid, 'labels': {},'text': text})
+            snsMessage = snsMessage + "\n"
+            print(f"snsMessage text = {snsMessage}")
+
+            snsClient = boto3.client('sns')
+            snsTopicArn = os.environ['SNS_TOPIC_ARN']
+            sndRole = os.environ['SNS_ROLE_ARN']
+            snsResponse = snsClient.publish(
+                TargetArn=snsTopicArn,
+                Message=snsMessage,
+                #   MessageStructure = 'json'
+            )
+            print(f"snsResponse text = {snsResponse}")
+
+            kresp =  kinesisClient.put_record(StreamName=os.environ['KIN_STREAM'],
+                                              Data=snsMessage,
+                                              PartitionKey="partitionkey")
+            print(f"kinesis response text: {kresp}")
+
         # end scott
 
         return response

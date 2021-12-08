@@ -2,6 +2,7 @@ import boto3
 from botocore.exceptions import ClientError
 from helper import AwsHelper
 import  datetime
+import time
 
 class ItemStore:
 
@@ -72,11 +73,12 @@ class ItemStore:
         try:
             table.update_item(
                 Key = { 'itemId': itemId },
-                UpdateExpression = 'SET itemStatus= :itemstatusValue, itemCompletedOn = :itemCompletedOnValue',
+                UpdateExpression = 'SET itemStatus= :itemstatusValue, itemCompletedOn = :itemCompletedOnValue, timetolive = :ttlValue',
                 ConditionExpression = 'attribute_exists(itemId)',
                 ExpressionAttributeValues = {
                     ':itemstatusValue': "SUCCEEDED",
-                    ':itemCompletedOnValue': str(datetime.datetime.utcnow())
+                    ':itemCompletedOnValue': str(datetime.datetime.utcnow()),
+                    ':ttlValue': int(time.time())+1200
                 }
             )
         except ClientError as e:
