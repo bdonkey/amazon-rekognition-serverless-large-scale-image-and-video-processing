@@ -83,38 +83,31 @@ export class TkcimgPipelineStack extends cdk.Stack {
     //endregion
 
     //region firehose
+    //https://go.aws/31sizGM
     //https://bit.ly/3pveOZm
     //https://github.com/aws/aws-cdk/issues/14391
-    // rootStream is a raw kinesis stream in which we build other modules on top of.
-    const topic = new sns.Topic(this, 'Topic');
-    new sns.Subscription(this, 'Subscription', {
-      topic,
-      endpoint: stream.deliveryStreamArn,
-      protocol: sns.SubscriptionProtocol.FIREHOSE,
-      subscriptionRoleArn: "SAMPLE_ARN", //role with permissions to send messages to a firehose delivery stream
-    });
+    // rekstream is a raw kinesis stream in which we build other modules on top of.
 
-    // approach 2
-    const rootStream = new kinesis.Stream(this, 'RootStream')
+    const rekstream = new kinesis.Stream(this, 'TkcimgKinRedshiftStream')
 
     // Output the stream name so we can connect our script to this stream
-    new cdk.CfnOutput(this, 'RootStreamName', {
-      value: rootStream.streamName
+    new cdk.CfnOutput(this, 'RekResultsStream', {
+      value: rekstream.streamName
     })
 
     const firehoseRole = new iam.Role(this, 'firehoseRole', {
       assumedBy: new iam.ServicePrincipal('firehose.amazonaws.com')
     });
 
-    rootStream.grantRead(firehoseRole)
-    rootStream.grant(firehoseRole, 'kinesis:DescribeStream')
+    rekstream.grantRead(firehoseRole)
+    rekstream.grant(firehoseRole, 'kinesis:DescribeStream')
     gluebucket.grantWrite(firehoseRole)
 
     const firehoseStreamToS3 = new kinesisfirehose.CfnDeliveryStream(this, "FirehoseStreamToS3", {
-      deliveryStreamName: "StreamRawToS3",
+      deliveryStreamName: "tkcImgRekstreamFireHose1",
       deliveryStreamType: "KinesisStreamAsSource",
       kinesisStreamSourceConfiguration: {
-        kinesisStreamArn: rootStream.streamArn,
+        kinesisStreamArn: rekstream.streamArn,
         roleArn: firehoseRole.roleArn
       },
       s3DestinationConfiguration: {
@@ -123,12 +116,12 @@ export class TkcimgPipelineStack extends cdk.Stack {
           sizeInMBs: 64,
           intervalInSeconds: 60
         },
-        compressionFormat: "GZIP",
+        // compressionFormat: "GZIP",
         encryptionConfiguration: {
           noEncryptionConfig: "NoEncryption"
         },
 
-        prefix: "raw/",
+        // prefix: "raw/",
         roleArn: firehoseRole.roleArn
       },
     })
@@ -313,6 +306,7 @@ export class TkcimgPipelineStack extends cdk.Stack {
         SNS_TOPIC_ARN : rekCompleteTopic.topicArn,
         MAX_LABELS: '10',
         MIN_CONFIDENCE:'90',
+        KIN_STREAM: rekstream.streamName,
         AWS_DATA_PATH : "models"
       }
     });
@@ -336,8 +330,14 @@ export class TkcimgPipelineStack extends cdk.Stack {
         })
     );
     syncProcessor.addToRolePolicy(
+        new iam.PolicyStatement({
+          actions: ["sns:*"],
+          resources: ["*"]
+        })
+    );
+    syncProcessor.addToRolePolicy(
       new iam.PolicyStatement({
-        actions: ["sns:*"],
+        actions: ["kinesis:*"],
         resources: ["*"]
       })
     );

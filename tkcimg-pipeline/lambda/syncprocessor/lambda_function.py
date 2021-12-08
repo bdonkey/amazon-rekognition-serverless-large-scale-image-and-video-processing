@@ -75,6 +75,8 @@ def callRekognition(bucketName, objectName, apiName, project, imgid):
             MinConfidence=minConfidence,
         )
 
+        kinesisClient=  boto3.client('kinesis')
+
         # begin ss proc
         detect_labels = response['Labels']
         for label in detect_labels:
@@ -94,6 +96,10 @@ def callRekognition(bucketName, objectName, apiName, project, imgid):
                 #   MessageStructure = 'json'
             )
             print(f"snsResponse = {snsResponse}")
+
+            kinesisClient.put_record(StreamName=os.environ['KIN_STREAM'],
+                                     Data=snsMessage,
+                                     PartitionKey="partitionkey")
         # end scott
 
         return response
@@ -168,6 +174,7 @@ def lambda_handler(event, context):
     request["objectName"] = message['objectName']
     request["outputBucket"] = os.environ['OUTPUT_BUCKET']
     request["itemsTable"] = os.environ['ITEMS_TABLE']
+    request["kinesisStream"] = os.environ['KIN_STREAM']
     request["imgid"] = imgId
     request["project"] = project
 
