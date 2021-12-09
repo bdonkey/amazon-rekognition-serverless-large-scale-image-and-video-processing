@@ -10,6 +10,10 @@ import time
 import re
 from pprint import pprint
 
+kinesisClient=  boto3.client('kinesis')
+KINESIS_RETRY_COUNT = 10
+KINESIS_RETRY_WAIT_IN_SEC = 0.1
+
 
 def callRekognition(bucketName, objectName, apiName, project, imgid):
     rekognition = AwsHelper().getClient('rekognition')
@@ -91,8 +95,8 @@ def callRekognition(bucketName, objectName, apiName, project, imgid):
             }
         )
 
-        kinesisClient=  boto3.client('kinesis')
         tc = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime())
+        krecords =[]
 
         # begin ss proc
         detect_labels = response['Labels']
@@ -105,6 +109,9 @@ def callRekognition(bucketName, objectName, apiName, project, imgid):
                 # {'bucket': bucketName, 'key': objectName, 'project': project, 'imageid': imgid, 'labels': label})
             snsMessage = snsMessage + "\n"
             print(f"snsMessage label = {snsMessage}")
+            pushRecord ={'Data': snsMessage,'PartitionKey':"partitionkey"}
+
+            krecords.append(pushRecord)
 
             # snsClient = boto3.client('sns')
             # snsTopicArn = os.environ['SNS_TOPIC_ARN']
@@ -116,10 +123,10 @@ def callRekognition(bucketName, objectName, apiName, project, imgid):
             # )
             # print(f"snsResponse Lables = {snsResponse}")
 
-            kresp =  kinesisClient.put_record(StreamName=os.environ['KIN_STREAM'],
-                                     Data=snsMessage,
-                                     PartitionKey="partitionkey")
-            print(f"kinesis label response: {kresp}")
+            # kresp =  kinesisClient.put_record(StreamName=os.environ['KIN_STREAM'],
+            #                          Data=snsMessage,
+            #                          PartitionKey="partitionkey")
+            # print(f"kinesis label response: {kresp}")
 
         detect_text = responseTxt['TextDetections']
         for text in detect_text:
@@ -130,6 +137,9 @@ def callRekognition(bucketName, objectName, apiName, project, imgid):
                 {'uuid': iid,'rekcreated': tc,'bucket': bucketName, 'key': objectName, 'project': project, 'imageid': imgid, 'labels': {},'text': text})
             snsMessage = snsMessage + "\n"
             print(f"snsMessage text = {snsMessage}")
+            pushRecord ={'Data': snsMessage,'PartitionKey':"partitionkey"}
+
+            krecords.append(pushRecord)
 
             # snsClient = boto3.client('sns')
             # snsTopicArn = os.environ['SNS_TOPIC_ARN']
@@ -141,14 +151,41 @@ def callRekognition(bucketName, objectName, apiName, project, imgid):
             # )
             # print(f"snsResponse text = {snsResponse}")
 
-            kresp =  kinesisClient.put_record(StreamName=os.environ['KIN_STREAM'],
-                                              Data=snsMessage,
-                                              PartitionKey="partitionkey")
-            print(f"kinesis response text: {kresp}")
+            # kresp =  kinesisClient.put_record(StreamName=os.environ['KIN_STREAM'],
+            #                                   Data=snsMessage,
+            #                                   PartitionKey="partitionkey")
+            # print(f"kinesis response text: {kresp}")
 
         # end scott
 
+        send_to_stream(krecords,KINESIS_RETRY_COUNT)
+        # put_response = kinesisClient.put_records(
+        #     Records=krecords,
+        #     StreamName=os.environ['KIN_STREAM'],
+        # )
+        # print(f"kinesis put_response text: {put_response}")
+
         return response
+
+# see https://bit.ly/3EG0NhF
+def send_to_stream(kinesis_records, retry_count):
+    put_response = kinesisClient.put_records(
+        Records=kinesis_records,
+        StreamName=os.environ['KIN_STREAM']
+    )
+    print(f"kinesis put_response text: {put_response}")
+
+    failed_count = put_response['FailedRecordCount']
+    if failed_count > 0:
+        if retry_count > 0:
+            retry_kinesis_records = []
+            for idx, record in enumerate(put_response['Records']):
+                if 'ErrorCode' in record:
+                    retry_kinesis_records.append(kinesis_records[idx])
+            time.sleep(KINESIS_RETRY_WAIT_IN_SEC * (KINESIS_RETRY_COUNT - retry_count + 1))
+            send_to_stream(retry_kinesis_records, retry_count - 1)
+        else:
+            print(f'Not able to put records after retries. Records = {put_response["Records"]}')
 
 def processImage(itemId, bucketName, objectName, outputBucketName, itemsTableName, project, imgId):
 

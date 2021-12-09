@@ -294,7 +294,7 @@ export class TkcimgPipelineStack extends cdk.Stack {
     // Sync Jobs Processor (Process jobs using sync APIs)
     const syncProcessor = new lambda.Function(this, 'SyncProcessor', {
       runtime: lambda.Runtime.PYTHON_3_7,
-      memorySize: 512,
+      memorySize: 160,
       code: lambda.Code.asset('lambda/syncprocessor'),
       handler: 'lambda_function.lambda_handler',
       description:'ss-handles tkcpipline sync sqs jobs',
