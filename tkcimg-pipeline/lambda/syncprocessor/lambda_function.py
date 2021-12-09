@@ -60,49 +60,39 @@ def callRekognition(bucketName, objectName, apiName, project, imgid):
     krecords =[]
 
     detect_labels = response['Labels']
+
+    labels  =[]
     for label in detect_labels:
-        pprint(label)
-        iid = str(uuid.uuid4())
+        # pprint(label)
+        labels.append(label)
 
-        snsMessage = json.dumps(
-            {'uuid': iid,'rekcreated': tc,'bucket': bucketName, 'key': objectName, 'project': project, 'imageid': imgid, 'labels': label,'text': {},'faces':{}})
-            # {'bucket': bucketName, 'key': objectName, 'project': project, 'imageid': imgid, 'labels': label})
-        snsMessage = snsMessage + "\n"
-        print(f"snsMessage label = {snsMessage}")
-        pushRecord ={'Data': snsMessage,'PartitionKey':"partitionkey"}
-
-        krecords.append(pushRecord)
-
-
+    texts = []
     detect_text = responseTxt['TextDetections']
     for text in detect_text:
-        pprint(text)
-        iid = str(uuid.uuid4())
+        # pprint(text)
+        texts.append(text)
 
-        snsMessage = json.dumps(
-            {'uuid': iid,'rekcreated': tc,'bucket': bucketName, 'key': objectName, 'project': project, 'imageid': imgid, 'labels': {},'text': text,'faces':{}})
-        snsMessage = snsMessage + "\n"
-        print(f"snsMessage text = {snsMessage}")
-        pushRecord ={'Data': snsMessage,'PartitionKey':"partitionkey"}
-
-        krecords.append(pushRecord)
-
+    faces = []
     detect_faces = responseFaces['FaceDetails']
     for face in detect_faces:
-        pprint(face)
-        iid = str(uuid.uuid4())
+        # pprint(face)
+        faces.append(face)
 
-        snsMessage = json.dumps(
-            {'uuid': iid,'rekcreated': tc,'bucket': bucketName, 'key': objectName, 'project': project, 'imageid': imgid, 'labels': {},'text': {},'faces':face})
-        snsMessage = snsMessage + "\n"
-        print(f"snsMessage text = {snsMessage}")
-        pushRecord ={'Data': snsMessage,'PartitionKey':"partitionkey"}
+    iid = str(uuid.uuid4())
+    snsMessage = json.dumps(
+        {'uuid': iid,'rekcreated': tc,'bucket': bucketName, 'key': objectName, 'project': project, 'imageid': imgid, 'labels': labels,'text': texts,'faces':faces})
+    snsMessage = snsMessage + "\n"
+    print(f"snsMessage = {snsMessage}")
 
-        krecords.append(pushRecord)
+    kresp =  kinesisClient.put_record(StreamName=os.environ['KIN_STREAM'],
+                                      Data=snsMessage,
+                                      PartitionKey="partitionkey")
+    print(f"kinesis label response: {kresp}")
 
-    send_to_stream(krecords,KINESIS_RETRY_COUNT)
 
-    return response
+    # send_to_stream(krecords,KINESIS_RETRY_COUNT)
+
+    return kresp
 
 # see https://bit.ly/3EG0NhF
 def send_to_stream(kinesis_records, retry_count):
