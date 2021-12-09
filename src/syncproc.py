@@ -106,15 +106,15 @@ def callRekognition(bucketName, objectName, apiName, project, imgid):
             snsMessage = snsMessage + "\n"
             print(f"snsMessage label = {snsMessage}")
 
-            snsClient = boto3.client('sns')
-            snsTopicArn = os.environ['SNS_TOPIC_ARN']
-            sndRole = os.environ['SNS_ROLE_ARN']
-            snsResponse = snsClient.publish(
-                TargetArn=snsTopicArn,
-                Message=snsMessage,
-                #   MessageStructure = 'json'
-            )
-            print(f"snsResponse Lables = {snsResponse}")
+            # snsClient = boto3.client('sns')
+            # snsTopicArn = os.environ['SNS_TOPIC_ARN']
+            # sndRole = os.environ['SNS_ROLE_ARN']
+            # snsResponse = snsClient.publish(
+            #     TargetArn=snsTopicArn,
+            #     Message=snsMessage,
+            #     #   MessageStructure = 'json'
+            # )
+            # print(f"snsResponse Lables = {snsResponse}")
 
             kresp =  kinesisClient.put_record(StreamName=os.environ['KIN_STREAM'],
                                      Data=snsMessage,
@@ -131,15 +131,15 @@ def callRekognition(bucketName, objectName, apiName, project, imgid):
             snsMessage = snsMessage + "\n"
             print(f"snsMessage text = {snsMessage}")
 
-            snsClient = boto3.client('sns')
-            snsTopicArn = os.environ['SNS_TOPIC_ARN']
-            sndRole = os.environ['SNS_ROLE_ARN']
-            snsResponse = snsClient.publish(
-                TargetArn=snsTopicArn,
-                Message=snsMessage,
-                #   MessageStructure = 'json'
-            )
-            print(f"snsResponse text = {snsResponse}")
+            # snsClient = boto3.client('sns')
+            # snsTopicArn = os.environ['SNS_TOPIC_ARN']
+            # sndRole = os.environ['SNS_ROLE_ARN']
+            # snsResponse = snsClient.publish(
+            #     TargetArn=snsTopicArn,
+            #     Message=snsMessage,
+            #     #   MessageStructure = 'json'
+            # )
+            # print(f"snsResponse text = {snsResponse}")
 
             kresp =  kinesisClient.put_record(StreamName=os.environ['KIN_STREAM'],
                                               Data=snsMessage,

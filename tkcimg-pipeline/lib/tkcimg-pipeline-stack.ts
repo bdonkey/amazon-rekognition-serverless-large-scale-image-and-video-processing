@@ -33,7 +33,7 @@ export class TkcimgPipelineStack extends cdk.Stack {
 
     //region sns
     //**********SNS Topics******************************
-    const rekCompleteTopic = new sns.Topic(this, 'RekCompletion');
+    // const rekCompleteTopic = new sns.Topic(this, 'RekCompletion');
     const jobCompletionTopic = new sns.Topic(this, 'JobCompletion');
 
     // endregion
@@ -43,13 +43,13 @@ export class TkcimgPipelineStack extends cdk.Stack {
     const rekognitionServiceRole = new iam.Role(this, 'RekognitionServiceRole', {
       assumedBy: new iam.ServicePrincipal('rekognition.amazonaws.com')
     });
-    rekognitionServiceRole.addToPolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        resources: [jobCompletionTopic.topicArn,rekCompleteTopic.topicArn],
-        actions: ["sns:Publish"]
-      })
-    );
+    // rekognitionServiceRole.addToPolicy(
+    //   new iam.PolicyStatement({
+    //     effect: iam.Effect.ALLOW,
+    //     resources: [jobCompletionTopic.topicArn,rekCompleteTopic.topicArn],
+    //     actions: ["sns:Publish"]
+    //   })
+    // );
 
     //endregion
 
@@ -193,7 +193,7 @@ export class TkcimgPipelineStack extends cdk.Stack {
       code: lambda.Code.asset('lambda/s3processor'),
       handler: 'lambda_function.lambda_handler',
       timeout: cdk.Duration.seconds(30),
-      description:'ssTest',
+      description:'ss-triggers on new images not currently activated',
       environment: {
         SYNC_QUEUE_URL: syncJobsQueue.queueUrl,
         ASYNC_QUEUE_URL: asyncJobsQueue.queueUrl,
@@ -240,7 +240,7 @@ export class TkcimgPipelineStack extends cdk.Stack {
       code: lambda.Code.asset('lambda/s3batchprocessor'),
       handler: 'lambda_function.lambda_handler',
       timeout: cdk.Duration.seconds(30),
-      description:'ssTest',
+      description:'ss-triggers on s3Batch processing',
       environment: {
         ITEMS_TABLE: itemsTable.tableName,
         OUTPUT_BUCKET: outputBucket.bucketName
@@ -267,7 +267,7 @@ export class TkcimgPipelineStack extends cdk.Stack {
       runtime: lambda.Runtime.PYTHON_3_7,
       code: lambda.Code.asset('lambda/itemprocessor'),
       handler: 'lambda_function.lambda_handler',
-      description:'ssTest',
+      description:'ss-handles putting images into tkcpipline from s3 triggers',
       timeout: cdk.Duration.seconds(900),
       environment: {
         SYNC_QUEUE_URL: syncJobsQueue.queueUrl,
@@ -294,16 +294,17 @@ export class TkcimgPipelineStack extends cdk.Stack {
     // Sync Jobs Processor (Process jobs using sync APIs)
     const syncProcessor = new lambda.Function(this, 'SyncProcessor', {
       runtime: lambda.Runtime.PYTHON_3_7,
+      memorySize: 512,
       code: lambda.Code.asset('lambda/syncprocessor'),
       handler: 'lambda_function.lambda_handler',
       description:'ss-handles tkcpipline sync sqs jobs',
       reservedConcurrentExecutions: 1,
-      timeout: cdk.Duration.seconds(25),
+      timeout: cdk.Duration.seconds(90),
       environment: {
         OUTPUT_BUCKET: outputBucket.bucketName,
         ITEMS_TABLE: itemsTable.tableName,
-        SNS_ROLE_ARN : rekognitionServiceRole.roleArn,
-        SNS_TOPIC_ARN : rekCompleteTopic.topicArn,
+        // SNS_ROLE_ARN : rekognitionServiceRole.roleArn,
+        // SNS_TOPIC_ARN : rekCompleteTopic.topicArn,
         MAX_LABELS: '10',
         MIN_CONFIDENCE:'90',
         KIN_STREAM: rekstream.streamName,
@@ -329,12 +330,12 @@ export class TkcimgPipelineStack extends cdk.Stack {
           resources: ["*"]
         })
     );
-    syncProcessor.addToRolePolicy(
-        new iam.PolicyStatement({
-          actions: ["sns:*"],
-          resources: ["*"]
-        })
-    );
+    // syncProcessor.addToRolePolicy(
+    //     new iam.PolicyStatement({
+    //       actions: ["sns:*"],
+    //       resources: ["*"]
+    //     })
+    // );
     syncProcessor.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["kinesis:*"],
