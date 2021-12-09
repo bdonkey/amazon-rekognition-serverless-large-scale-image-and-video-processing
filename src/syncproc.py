@@ -21,151 +21,88 @@ def callRekognition(bucketName, objectName, apiName, project, imgid):
     maxLabels = int(os.environ['MAX_LABELS'])
     minConfidence = int(os.environ['MIN_CONFIDENCE'])
 
-    if (apiName == "labels"):
-        response = rekognition.detect_labels(
-            Image={
-                'S3Object': {
-                    'Bucket': bucketName,
-                    'Name': objectName
-                }
-            },
-            MaxLabels=maxLabels,
-            MinConfidence=minConfidence,
-
-        )
-    elif (apiName == "text"):
-        response = rekognition.detect_text(
-            Image={
-                'S3Object': {
-                    'Bucket': bucketName,
-                    'Name': objectName
-                }
+    response = rekognition.detect_labels(
+        Image={
+            'S3Object': {
+                'Bucket': bucketName,
+                'Name': objectName
             }
-        )
-    elif (apiName == "faces"):
-        response = rekognition.detect_faces(
-            Image={
-                'S3Object': {
-                    'Bucket': bucketName,
-                    'Name': objectName
-                }
+        },
+        MaxLabels=maxLabels,
+        MinConfidence=minConfidence,
+    )
+
+    responseTxt = rekognition.detect_text(
+        Image={
+            'S3Object': {
+                'Bucket': bucketName,
+                'Name': objectName
             }
-        )
-    elif (apiName == "moderation"):
-        response = rekognition.detect_moderation_labels(
-            Image={
-                'S3Object': {
-                    'Bucket': bucketName,
-                    'Name': objectName
-                }
+        },
+        Filters={
+            'WordFilter': {
+                'MinConfidence': 80
             }
-        )
-    elif (apiName == "celebrities"):
-        response = rekognition.recognize_celebrities(
-            Image={
-                'S3Object': {
-                    'Bucket': bucketName,
-                    'Name': objectName
-                }
+        }
+    )
+
+    responseFaces= rekognition.detect_faces(
+        Image={
+            'S3Object': {
+                'Bucket': bucketName,
+                'Name': objectName
             }
-        )
-    else:
-        response = rekognition.detect_labels(
-            Image={
-                'S3Object': {
-                    'Bucket': bucketName,
-                    'Name': objectName
-                }
-            },
-            MaxLabels=maxLabels,
-            MinConfidence=minConfidence,
-        )
+        },
+        Attributes=['ALL']
+    )
 
-        responseTxt = rekognition.detect_text(
-            Image={
-                'S3Object': {
-                    'Bucket': bucketName,
-                    'Name': objectName
-                }
-            },
-            Filters={
-                'WordFilter': {
-                    'MinConfidence': 80
-                }
-            }
-        )
+    tc = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime())
+    krecords =[]
 
-        tc = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime())
-        krecords =[]
+    detect_labels = response['Labels']
+    for label in detect_labels:
+        pprint(label)
+        iid = str(uuid.uuid4())
 
-        # begin ss proc
-        detect_labels = response['Labels']
-        for label in detect_labels:
-            pprint(label)
-            iid = str(uuid.uuid4())
+        snsMessage = json.dumps(
+            {'uuid': iid,'rekcreated': tc,'bucket': bucketName, 'key': objectName, 'project': project, 'imageid': imgid, 'labels': label,'text': {},'faces':{}})
+            # {'bucket': bucketName, 'key': objectName, 'project': project, 'imageid': imgid, 'labels': label})
+        snsMessage = snsMessage + "\n"
+        print(f"snsMessage label = {snsMessage}")
+        pushRecord ={'Data': snsMessage,'PartitionKey':"partitionkey"}
 
-            snsMessage = json.dumps(
-                {'uuid': iid,'rekcreated': tc,'bucket': bucketName, 'key': objectName, 'project': project, 'imageid': imgid, 'labels': label,'text': {}})
-                # {'bucket': bucketName, 'key': objectName, 'project': project, 'imageid': imgid, 'labels': label})
-            snsMessage = snsMessage + "\n"
-            print(f"snsMessage label = {snsMessage}")
-            pushRecord ={'Data': snsMessage,'PartitionKey':"partitionkey"}
+        krecords.append(pushRecord)
 
-            krecords.append(pushRecord)
 
-            # snsClient = boto3.client('sns')
-            # snsTopicArn = os.environ['SNS_TOPIC_ARN']
-            # sndRole = os.environ['SNS_ROLE_ARN']
-            # snsResponse = snsClient.publish(
-            #     TargetArn=snsTopicArn,
-            #     Message=snsMessage,
-            #     #   MessageStructure = 'json'
-            # )
-            # print(f"snsResponse Lables = {snsResponse}")
+    detect_text = responseTxt['TextDetections']
+    for text in detect_text:
+        pprint(text)
+        iid = str(uuid.uuid4())
 
-            # kresp =  kinesisClient.put_record(StreamName=os.environ['KIN_STREAM'],
-            #                          Data=snsMessage,
-            #                          PartitionKey="partitionkey")
-            # print(f"kinesis label response: {kresp}")
+        snsMessage = json.dumps(
+            {'uuid': iid,'rekcreated': tc,'bucket': bucketName, 'key': objectName, 'project': project, 'imageid': imgid, 'labels': {},'text': text,'faces':{}})
+        snsMessage = snsMessage + "\n"
+        print(f"snsMessage text = {snsMessage}")
+        pushRecord ={'Data': snsMessage,'PartitionKey':"partitionkey"}
 
-        detect_text = responseTxt['TextDetections']
-        for text in detect_text:
-            pprint(text)
-            iid = str(uuid.uuid4())
+        krecords.append(pushRecord)
 
-            snsMessage = json.dumps(
-                {'uuid': iid,'rekcreated': tc,'bucket': bucketName, 'key': objectName, 'project': project, 'imageid': imgid, 'labels': {},'text': text})
-            snsMessage = snsMessage + "\n"
-            print(f"snsMessage text = {snsMessage}")
-            pushRecord ={'Data': snsMessage,'PartitionKey':"partitionkey"}
+    detect_faces = responseFaces['FaceDetails']
+    for face in detect_faces:
+        pprint(face)
+        iid = str(uuid.uuid4())
 
-            krecords.append(pushRecord)
+        snsMessage = json.dumps(
+            {'uuid': iid,'rekcreated': tc,'bucket': bucketName, 'key': objectName, 'project': project, 'imageid': imgid, 'labels': {},'text': {},'faces':face})
+        snsMessage = snsMessage + "\n"
+        print(f"snsMessage text = {snsMessage}")
+        pushRecord ={'Data': snsMessage,'PartitionKey':"partitionkey"}
 
-            # snsClient = boto3.client('sns')
-            # snsTopicArn = os.environ['SNS_TOPIC_ARN']
-            # sndRole = os.environ['SNS_ROLE_ARN']
-            # snsResponse = snsClient.publish(
-            #     TargetArn=snsTopicArn,
-            #     Message=snsMessage,
-            #     #   MessageStructure = 'json'
-            # )
-            # print(f"snsResponse text = {snsResponse}")
+        krecords.append(pushRecord)
 
-            # kresp =  kinesisClient.put_record(StreamName=os.environ['KIN_STREAM'],
-            #                                   Data=snsMessage,
-            #                                   PartitionKey="partitionkey")
-            # print(f"kinesis response text: {kresp}")
+    send_to_stream(krecords,KINESIS_RETRY_COUNT)
 
-        # end scott
-
-        send_to_stream(krecords,KINESIS_RETRY_COUNT)
-        # put_response = kinesisClient.put_records(
-        #     Records=krecords,
-        #     StreamName=os.environ['KIN_STREAM'],
-        # )
-        # print(f"kinesis put_response text: {put_response}")
-
-        return response
+    return response
 
 # see https://bit.ly/3EG0NhF
 def send_to_stream(kinesis_records, retry_count):
